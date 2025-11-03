@@ -101,9 +101,28 @@ def push_local_repo(repo_path: str, commit_message: str = "voice commit") -> Non
             print(f"Created and switched to branch {branch_name}.")
         except Exception as e:
             print(f"Branch setup error: {e}")
-    # Push with upstream
+    # Push with upstream; use HTTPS token header if remote is https
     try:
-        print(repo.git.push("--set-upstream", "origin", branch_name))
+        remote_url = None
+        try:
+            remote_url = repo.remotes.origin.url
+        except Exception:
+            pass
+        if remote_url and remote_url.startswith("https://") and GITHUB_TOKEN:
+            # Use ephemeral header; token not persisted in config
+            repo.git.execute([
+                "git",
+                "-C",
+                repo_path,
+                "-c",
+                f"http.extraheader=Authorization: Bearer {GITHUB_TOKEN}",
+                "push",
+                "--set-upstream",
+                "origin",
+                branch_name,
+            ])
+        else:
+            repo.git.push("--set-upstream", "origin", branch_name)
         speak("Pushed your local repository to GitHub.")
     except Exception as e:
         print(f"Push error: {e}")

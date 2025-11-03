@@ -34,6 +34,12 @@ def active_session_loop() -> None:
             text = transcribe_audio(tmp)
             if text:
                 print(f"Heard: {text}")
+                # If user requests to end the session, stop listening immediately
+                exit_words = ("exit", "quit", "bye", "goodbye", "stop", "sleep", "cancel", "go to sleep", "rest", "bye bye")
+                if any(w in text for w in exit_words):
+                    print("Exit command detected. Ending session now.")
+                    speak("Okay, going to sleep. Say the wake word when you need me.")
+                    return
                 handle_text_command(text)
             else:
                 print("No speech detected in this block.")

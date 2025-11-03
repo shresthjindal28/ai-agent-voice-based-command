@@ -131,6 +131,28 @@ function activate(context) {
 
   outputChannel = vscode.window.createOutputChannel('Vani Agent');
 
+  // Register a simple sidebar view with actions
+  const vaniProvider = {
+    getChildren: () => {
+      const items = [];
+      const runItem = new vscode.TreeItem('Run Agent', vscode.TreeItemCollapsibleState.None);
+      runItem.command = { command: 'vani.runAgent', title: 'Run Agent' };
+      runItem.iconPath = new vscode.ThemeIcon('play');
+      items.push(runItem);
+      const stopItem = new vscode.TreeItem('Stop Agent', vscode.TreeItemCollapsibleState.None);
+      stopItem.command = { command: 'vani.stopAgent', title: 'Stop Agent' };
+      stopItem.iconPath = new vscode.ThemeIcon('stop');
+      items.push(stopItem);
+      const runAllItem = new vscode.TreeItem('Run Agent in All Folders', vscode.TreeItemCollapsibleState.None);
+      runAllItem.command = { command: 'vani.runAgentAll', title: 'Run Agent in All Folders' };
+      runAllItem.iconPath = new vscode.ThemeIcon('rocket');
+      items.push(runAllItem);
+      return items;
+    },
+    getTreeItem: (element) => element
+  };
+  vscode.window.registerTreeDataProvider('vaniView', vaniProvider);
+
   // Run Agent command
   const runDisposable = vscode.commands.registerCommand('vani.runAgent', async function () {
     const config = vscode.workspace.getConfiguration('vaniAgent');

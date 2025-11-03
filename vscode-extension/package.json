@@ -8,6 +8,7 @@
   },
   "categories": ["Other"],
   "activationEvents": [
+    "onView:vaniView",
     "onCommand:vani.runAgent",
     "onCommand:vani.stopAgent",
     "onCommand:vani.runAgentAll"
@@ -31,6 +32,23 @@
         "category": "Vani"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vani",
+          "title": "Vani",
+          "icon": "media/vani.svg"
+        }
+      ]
+    },
+    "views": {
+      "vani": [
+        {
+          "id": "vaniView",
+          "name": "Vani Control"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Vani Agent configuration",

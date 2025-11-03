@@ -99,9 +99,14 @@ class IssueClose(BaseModel):
     number: int
 
 
-@app.get("/health")
-def health() -> Dict[str, Any]:
-    return {"status": "ok"}
+@app.get("/")
+def root() -> Dict[str, Any]:
+    return {"ok": True, "service": "vani-agent", "version": "0.1.0"}
+
+
+@app.get("/healthz")
+def healthz() -> Dict[str, Any]:
+    return {"status": "healthy"}
 
 
 @app.post("/command")

@@ -101,7 +101,7 @@ def push_local_repo(repo_path: str, commit_message: str = "voice commit") -> Non
             print(f"Created and switched to branch {branch_name}.")
         except Exception as e:
             print(f"Branch setup error: {e}")
-    # Push with upstream; use HTTPS token header if remote is https
+    # Push with upstream; prefer HTTPS using ephemeral auth URL to avoid storing credentials
     try:
         remote_url = None
         try:
@@ -109,18 +109,25 @@ def push_local_repo(repo_path: str, commit_message: str = "voice commit") -> Non
         except Exception:
             pass
         if remote_url and remote_url.startswith("https://") and GITHUB_TOKEN:
-            # Use ephemeral header; token not persisted in config
-            repo.git.execute([
-                "git",
-                "-C",
-                repo_path,
-                "-c",
-                f"http.extraheader=Authorization: Bearer {GITHUB_TOKEN}",
-                "push",
-                "--set-upstream",
-                "origin",
-                branch_name,
-            ])
+            # Build a temporary authenticated remote URL, push, then restore original
+            original_url = remote_url
+            try:
+                # Parse owner/repo from the URL
+                path = original_url.split("github.com/")[-1]
+                if path.endswith(".git"):
+                    path = path[:-4]
+                owner, repo_name = path.split("/", 1)
+                auth_url = f"https://{owner}:{GITHUB_TOKEN}@github.com/{owner}/{repo_name}.git"
+                # Set temporary URL
+                repo.git.remote("set-url", "origin", auth_url)
+                # Push
+                repo.git.push("--set-upstream", "origin", branch_name)
+            finally:
+                # Restore original URL
+                try:
+                    repo.git.remote("set-url", "origin", original_url)
+                except Exception:
+                    pass
         else:
             repo.git.push("--set-upstream", "origin", branch_name)
         speak("Pushed your local repository to GitHub.")

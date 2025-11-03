@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+// Small shim for `node start` so the user gets helpful instructions instead of MODULE_NOT_FOUND.
+// The VS Code extension should be run using the Extension Development Host (F5) or via
+// `code --extensionDevelopmentPath=<path>`; it is not designed to be run directly with node.
+
+console.log('\nVani VS Code extension development helper');
+console.log('-----------------------------------------');
+console.log('You ran: node start');
+console.log('\nThis repository contains a VS Code extension under the `vscode-extension/` folder.');
+console.log('To test the extension use one of the following options:');
+console.log('\n1) In VS Code (recommended)');
+console.log('   - Open the workspace in VS Code.');
+console.log('   - Open the `vscode-extension` folder in the Explorer and press F5 to launch an Extension Development Host.');
+console.log('\n2) From the command line using code:');
+console.log('   code --extensionDevelopmentPath=/Users/shresthjindal/Desktop/mini-project/vscode-extension');
+console.log('\n3) If you expected an npm script, run `npm start` (only if a start script is defined in package.json).');
+
+console.log('\nNotes:');
+console.log(' - Running `node ./extension.js` directly will fail because the `vscode` module is only available in the extension host.');
+console.log(' - Use the Extension Development Host (F5) to debug/launch the extension.');
+console.log('\n');

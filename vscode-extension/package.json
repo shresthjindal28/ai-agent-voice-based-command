@@ -1,0 +1,66 @@
+{
+  "name": "vani-agent",
+  "displayName": "Vani Agent",
+  "publisher": "shresthjindal28",
+  "version": "0.0.2",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:vani.runAgent",
+    "onCommand:vani.stopAgent",
+    "onCommand:vani.runAgentAll"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vani.runAgent",
+        "title": "Vani: Run Agent",
+        "category": "Vani"
+      },
+      {
+        "command": "vani.stopAgent",
+        "title": "Vani: Stop Agent",
+        "category": "Vani"
+      },
+      {
+        "command": "vani.runAgentAll",
+        "title": "Vani: Run Agent in All Folders",
+        "category": "Vani"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Vani Agent configuration",
+      "properties": {
+        "vaniAgent.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Python executable to use to run the agent (e.g. python3 or path to interpreter)."
+        },
+        "vaniAgent.agentPath": {
+          "type": "string",
+          "default": "agent.py",
+          "description": "Path to the agent script relative to the workspace root."
+        },
+        "vaniAgent.openaiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Optional: provide your OPENAI_API_KEY here to run the agent from the integrated terminal or Output panel. For better security, set this in your OS environment or use a secret manager."
+        },
+        "vaniAgent.runInTerminal": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, run the agent in the integrated Terminal. If false, run it as a spawned process and stream logs to the Output panel."
+        },
+        "vaniAgent.autoInstallDeps": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically install Python dependencies from requirements.txt if soundfile/sounddevice/numpy are missing before starting the agent."
+        }
+      }
+    }
+  }
+}

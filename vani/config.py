@@ -7,6 +7,12 @@ from openai import OpenAI
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+from dotenv import load_dotenv
+import os
+
+# Load .env and override any pre-set env vars so the app uses the values from .env
+load_dotenv(override=True)
+
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_DEFAULT_VISIBILITY = os.getenv("GITHUB_DEFAULT_VISIBILITY", "private").lower()
 GITHUB_DEFAULT_ORG = os.getenv("GITHUB_DEFAULT_ORG")

@@ -2,32 +2,62 @@ import os
 import time
 from difflib import SequenceMatcher
 
-from .config import WAKE_WORD, ACTIVE_WINDOW_SECONDS, USER_NAME, TTS_VOICE
-from .audio import record_audio_block, save_wav_temp
-from .stt import transcribe_audio
+from .config import WAKE_WORD, ACTIVE_WINDOW_SECONDS, USER_NAME, TTS_VOICE, sarvam_client
+from .audio import record_audio_block, save_wav_temp, speak, set_language_code
+from .stt import transcribe_audio_with_lang
 
 
-def _is_wake_detected(text: str) -> bool:
-    t = text.lower()
+def _is_wake_detected(text: str, language_code: str) -> bool:
+    t = (text or "").lower().strip()
+    # Simple direct check in English
     if WAKE_WORD in t:
         return True
-    variants = ["vani", "vaani", "vanni", "wani", "bani", "bunny", "vanee"]
-    if "hello" in t and any(v in t for v in variants):
+    # Common variants for "vani" across Indic scripts
+    vani_variants = {
+        "vani", "vaani", "vanee",
+        "वाणी", "वानी",  # Hindi/Marathi
+        "வாணி",            # Tamil
+        "వాణి",            # Telugu
+        "ವಾಣಿ",            # Kannada
+        "વાણી",            # Gujarati
+        "বাণী",            # Bengali
+        "ਵਾਨੀ",            # Punjabi (Gurmukhi)
+    }
+    hello_variants = {"hello", "helo", "हेलो", "हैलो", "ஹலோ", "హలో", "ಹಲೋ", "હેલો", "হ্যালো", "ਹੈਲੋ", "வணக்கம்"}
+    if any(v in t for v in vani_variants) and any(h in t for h in hello_variants):
         return True
+    # Try fuzzy match
     try:
         ratio = SequenceMatcher(None, t, WAKE_WORD).ratio()
         if ratio >= 0.6:
             return True
     except Exception:
         pass
+    # If Sarvam is available, translate the wake word to the detected language and compare
+    if sarvam_client is not None and language_code:
+        try:
+            resp = sarvam_client.text.translate(
+                input=WAKE_WORD,
+                source_language_code="auto",
+                target_language_code=language_code,
+            )
+            translated = None
+            if isinstance(resp, dict):
+                translated = resp.get("text") or resp.get("output")
+            else:
+                translated = getattr(resp, "text", None) or getattr(resp, "output", None)
+            if translated:
+                trans = translated.lower().strip()
+                if trans in t:
+                    return True
+                try:
+                    if SequenceMatcher(None, t, trans).ratio() >= 0.6:
+                        return True
+                except Exception:
+                    pass
+        except Exception:
+            pass
     return False
-
-
-def _say(text: str) -> None:
-    """Speak a short response using macOS built-in TTS 'say'."""
-    # Use macOS 'say' with selected voice; escape quotes
-    safe = text.replace("\"", "'")
-    os.system(f"say -v {TTS_VOICE} \"{safe}\"")
 
 
 def wait_for_wake() -> float:
@@ -38,18 +68,20 @@ def wait_for_wake() -> float:
         tmp = "./wake.wav"
         save_wav_temp(audio, tmp)
         try:
-            text = transcribe_audio(tmp)
-            print(f"Heard (wake): {text}")
+            text, lang_code = transcribe_audio_with_lang(tmp)
+            print(f"Heard (wake): {text} | language_code={lang_code}")
         except Exception as e:
             print(f"Transcription error: {e}")
-            text = ""
+            text, lang_code = "", "en-IN"
         finally:
             if os.path.exists(tmp):
                 os.remove(tmp)
-        if text and _is_wake_detected(text):
+        if text and _is_wake_detected(text, lang_code):
             active_until_ts = time.time() + ACTIVE_WINDOW_SECONDS
             print("Wake word detected. Agent active for 2 minutes.")
-            _say(f"Hey {USER_NAME}, how can I help you today?")
+            # Set current language for speech responses
+            set_language_code(lang_code)
+            speak(f"Hey {USER_NAME}, how can I help you today?")
             return active_until_ts
         else:
             print("Wake not detected. Say 'hello vani' clearly near the microphone.")

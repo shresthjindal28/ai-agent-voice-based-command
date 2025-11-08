@@ -2,12 +2,33 @@ import os
 import time
 
 from .audio import record_audio_block, save_wav_temp, speak
-from .stt import transcribe_audio
-from .config import TERMINAL_AUTO_APPROVE
+from .stt import transcribe_audio_with_lang
+from .config import TERMINAL_AUTO_APPROVE, sarvam_client
 
 # Simple debounce to prevent multiple Terminal openings in quick succession
 _LAST_RUN_AT = 0.0
 _DEBOUNCE_SECONDS = 5.0
+
+
+def _to_english(text: str, lang_code: str) -> str:
+    t = (text or "").strip()
+    if not t:
+        return t
+    lc = (lang_code or "").lower()
+    if sarvam_client is not None and lc and not lc.startswith("en"):
+        try:
+            resp = sarvam_client.text.translate(
+                input=t,
+                source_language_code="auto",
+                target_language_code="en-IN",
+            )
+            if isinstance(resp, dict):
+                return resp.get("text") or resp.get("output") or t
+            else:
+                return getattr(resp, "text", None) or getattr(resp, "output", None) or t
+        except Exception:
+            return t
+    return t
 
 
 def request_terminal_permission() -> bool:
@@ -21,17 +42,18 @@ def request_terminal_permission() -> bool:
         audio = record_audio_block(duration_sec=3.5)
         save_wav_temp(audio, tmp)
         try:
-            text = transcribe_audio(tmp)
+            text, lang = transcribe_audio_with_lang(tmp)
+            text_en = _to_english(text, lang)
         except Exception:
-            text = ""
+            text_en = ""
     except Exception as e:
         # If audio/STT fails, default to allowing to avoid crashes
         print(f"Permission capture failed, proceeding by default: {e}")
-        text = "yes"
+        text_en = "yes"
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
-    allow = ("no" not in text)
+    allow = ("no" not in (text_en or "").lower())
     return allow
 
 
@@ -42,14 +64,15 @@ def _ask_and_listen(prompt: str, duration: float = 4.0) -> str:
     tmp = "./clarify.wav"
     save_wav_temp(audio, tmp)
     try:
-        text = transcribe_audio(tmp)
+        text, lang = transcribe_audio_with_lang(tmp)
+        text_en = _to_english(text, lang)
     except Exception:
-        text = ""
+        text_en = ""
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
-    print(f"User said: {text}")
-    return text
+    print(f"User said: {text_en}")
+    return text_en
 
 
 def _resolve_vite_template(args: dict) -> tuple[str, str]:

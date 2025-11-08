@@ -2,6 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from openai import OpenAI
+from sarvamai import SarvamAI
 
 # Load environment from .env, overriding any pre-set env vars
 load_dotenv(override=True)
@@ -19,7 +20,14 @@ WAKE_WORD = os.getenv("WAKE_WORD", "hello vani").lower().strip()
 ACTIVE_WINDOW_SECONDS = int(os.getenv("ACTIVE_WINDOW_SECONDS", "120"))
 # Add terminal permission auto-approve and STT language
 TERMINAL_AUTO_APPROVE = os.getenv("TERMINAL_AUTO_APPROVE", "true").lower() in {"1", "true", "yes", "y"}
-STT_LANGUAGE = os.getenv("STT_LANGUAGE", "en")
+STT_LANGUAGE = os.getenv("STT_LANGUAGE", "auto")
+
+# SarvamAI STT configuration
+SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
+SARVAM_MODEL = os.getenv("SARVAM_MODEL", "saarika:v2.5")
+SARVAM_LANGUAGE_CODE = os.getenv("SARVAM_LANGUAGE_CODE", "auto")
+# SarvamAI TTS configuration
+SARVAM_TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v2")
 
 # Audio settings
 SAMPLE_RATE = 16000
@@ -32,3 +40,6 @@ if not OPENAI_API_KEY:
 
 # OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+# SarvamAI client (used for speech-to-text)
+sarvam_client = SarvamAI(api_subscription_key=SARVAM_API_KEY) if SARVAM_API_KEY else None

@@ -34,12 +34,8 @@ SAMPLE_RATE = 16000
 CHANNELS = 1
 BLOCK_DURATION = float(os.getenv("BLOCK_DURATION", "7.0"))  # seconds per recorded clip for STT
 
-if not OPENAI_API_KEY:
-    print("ERROR: OPENAI_API_KEY is not set in environment.")
-    sys.exit(1)
-
-# OpenAI client
-client = OpenAI(api_key=OPENAI_API_KEY)
+# OpenAI client (optional)
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 # SarvamAI client (used for speech-to-text)
 sarvam_client = SarvamAI(api_subscription_key=SARVAM_API_KEY) if SARVAM_API_KEY else None

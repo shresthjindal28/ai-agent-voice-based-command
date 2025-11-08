@@ -60,13 +60,17 @@
         },
         "vaniAgent.agentPath": {
           "type": "string",
-          "default": "agent.py",
-          "description": "Path to the agent script relative to the workspace root."
+          "default": "agent.py"
         },
         "vaniAgent.openaiKey": {
           "type": "string",
           "default": "",
           "description": "Optional: provide your OPENAI_API_KEY here to run the agent from the integrated terminal or Output panel. For better security, set this in your OS environment or use a secret manager."
+        },
+        "vaniAgent.sarvamKey": {
+          "type": "string",
+          "default": "",
+          "description": "Optional: provide your SARVAM_API_KEY here to enable Sarvam AI STT/TTS and heuristics in the agent. For better security, set this in your OS environment or use a secret manager."
         },
         "vaniAgent.runInTerminal": {
           "type": "boolean",

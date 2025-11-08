@@ -66,16 +66,19 @@ function resolvePythonPath(cwd, configured) {
   return cfg;
 }
 
-// Helper: read OPENAI_API_KEY from .env in cwd
-function readOpenAIKeyFromDotEnv(cwd) {
+// Helper: read OPENAI_API_KEY and SARVAM_API_KEY from .env in cwd
+function readKeysFromDotEnv(cwd) {
+  const keys = { openai: '', sarvam: '' };
   try {
     const envPath = path.join(cwd, '.env');
-    if (!fs.existsSync(envPath)) return '';
+    if (!fs.existsSync(envPath)) return keys;
     const dot = fs.readFileSync(envPath, 'utf8');
-    const match = dot.match(/^\s*OPENAI_API_KEY\s*=\s*(.+)\s*$/m);
-    if (match) return match[1].trim().replace(/^"|"$/g, '');
+    const m1 = dot.match(/^\s*OPENAI_API_KEY\s*=\s*(.+)\s*$/m);
+    const m2 = dot.match(/^\s*SARVAM_API_KEY\s*=\s*(.+)\s*$/m);
+    if (m1) keys.openai = m1[1].trim().replace(/^"|"$/g, '');
+    if (m2) keys.sarvam = m2[1].trim().replace(/^"|"$/g, '');
   } catch (_) {}
-  return '';
+  return keys;
 }
 
 // Helper: ensure Python dependencies (soundfile, sounddevice, numpy) are available; install via pip if needed
@@ -160,6 +163,7 @@ function activate(context) {
     const agentRel = config.get('agentPath') || 'agent.py';
     const runInTerminal = config.get('runInTerminal') || false;
     const openaiKeySetting = config.get('openaiKey') || '';
+    const sarvamKeySetting = config.get('sarvamKey') || '';
     const autoInstallDeps = config.get('autoInstallDeps') ?? true;
 
     // Choose correct workspace folder
@@ -176,15 +180,21 @@ function activate(context) {
       return;
     }
 
-    const effectiveKey = openaiKeySetting || readOpenAIKeyFromDotEnv(cwd);
+    const { openai, sarvam } = readKeysFromDotEnv(cwd);
+    const effectiveOpenAI = openaiKeySetting || openai;
+    const effectiveSarvam = sarvamKeySetting || sarvam;
 
     if (runInTerminal) {
       const term = vscode.window.createTerminal({ name: 'Vani Agent', cwd });
       term.show(true);
-      if (effectiveKey) {
-        term.sendText(`export OPENAI_API_KEY="${effectiveKey}"`);
-      } else {
-        vscode.window.showWarningMessage('OPENAI_API_KEY is not set. Set vaniAgent.openaiKey, use a .env file, or configure your OS environment.');
+      if (effectiveOpenAI) {
+        term.sendText(`export OPENAI_API_KEY="${effectiveOpenAI}"`);
+      }
+      if (effectiveSarvam) {
+        term.sendText(`export SARVAM_API_KEY="${effectiveSarvam}"`);
+      }
+      if (!effectiveOpenAI && !effectiveSarvam) {
+        vscode.window.showWarningMessage('Neither OPENAI_API_KEY nor SARVAM_API_KEY is set. STT/intent may be limited.');
       }
       const reqPath = path.join(cwd, 'requirements.txt');
       if (autoInstallDeps && fs.existsSync(reqPath)) {
@@ -202,9 +212,10 @@ function activate(context) {
     channel.appendLine(`Starting Vani agent: ${pythonPath} ${agentFull}`);
 
     const env = { ...process.env };
-    if (effectiveKey) env.OPENAI_API_KEY = effectiveKey;
-    if (!env.OPENAI_API_KEY) {
-      vscode.window.showWarningMessage('OPENAI_API_KEY is not set. The agent may exit. Set vaniAgent.openaiKey, use a .env file, or configure your shell environment.');
+    if (effectiveOpenAI) env.OPENAI_API_KEY = effectiveOpenAI;
+    if (effectiveSarvam) env.SARVAM_API_KEY = effectiveSarvam;
+    if (!env.OPENAI_API_KEY && !env.SARVAM_API_KEY) {
+      vscode.window.showWarningMessage('Neither OPENAI_API_KEY nor SARVAM_API_KEY is set. The agent will use local heuristics and may be limited.');
     }
 
     const depsOk = await ensureDependencies(pythonPath, cwd, channel, false, autoInstallDeps);
@@ -236,6 +247,7 @@ function activate(context) {
     const agentRel = config.get('agentPath') || 'agent.py';
     const runInTerminal = config.get('runInTerminal') || false;
     const openaiKeySetting = config.get('openaiKey') || '';
+    const sarvamKeySetting = config.get('sarvamKey') || '';
     const autoInstallDeps = config.get('autoInstallDeps') ?? true;
 
     const folders = vscode.workspace.workspaceFolders || [];
@@ -251,11 +263,14 @@ function activate(context) {
       if (!fs.existsSync(agentFull)) {
         continue; // skip folders without agent
       }
-      const effectiveKey = openaiKeySetting || readOpenAIKeyFromDotEnv(cwd);
+      const { openai, sarvam } = readKeysFromDotEnv(cwd);
+      const effectiveOpenAI = openaiKeySetting || openai;
+      const effectiveSarvam = sarvamKeySetting || sarvam;
       if (runInTerminal) {
         const term = vscode.window.createTerminal({ name: getFolderChannelName(cwd), cwd });
         term.show(true);
-        if (effectiveKey) term.sendText(`export OPENAI_API_KEY="${effectiveKey}"`);
+        if (effectiveOpenAI) term.sendText(`export OPENAI_API_KEY="${effectiveOpenAI}"`);
+        if (effectiveSarvam) term.sendText(`export SARVAM_API_KEY="${effectiveSarvam}"`);
         const reqPath = path.join(cwd, 'requirements.txt');
         if (autoInstallDeps && fs.existsSync(reqPath)) {
           term.sendText(`${pythonPath} -m pip install -r "${reqPath}"`);
@@ -268,7 +283,8 @@ function activate(context) {
       channel.show(true);
       channel.appendLine(`Starting Vani agent: ${pythonPath} ${agentFull}`);
       const env = { ...process.env };
-      if (effectiveKey) env.OPENAI_API_KEY = effectiveKey;
+      if (effectiveOpenAI) env.OPENAI_API_KEY = effectiveOpenAI;
+      if (effectiveSarvam) env.SARVAM_API_KEY = effectiveSarvam;
       const depsOk = await ensureDependencies(pythonPath, cwd, channel, false, autoInstallDeps);
       if (!depsOk) {
         channel.appendLine('Aborting start due to dependency issues.');

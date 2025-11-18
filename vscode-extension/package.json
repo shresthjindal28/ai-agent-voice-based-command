@@ -3,6 +3,7 @@
   "displayName": "Vani Agent",
   "publisher": "shresthjindal28",
   "version": "0.0.2",
+  "icon": "media/icon.svg",
   "engines": {
     "vscode": "^1.60.0"
   },

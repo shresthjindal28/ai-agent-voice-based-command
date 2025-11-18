@@ -16,43 +16,14 @@ A voice-driven developer assistant packaged as a VS Code extension plus a Python
                          → Ops: git | github | terminal
 VS Code extension → spawn agent (per folder) → Output/Terminal logs
 ```
-### UML Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant User
-    participant VSCode as VS Code Extension
-    participant Agent as Python Agent
-    participant Wake as Wake Detector
-    participant Audio as Audio I/O
-    participant STT as Speech-to-Text
-    participant Intent as Intent Parser
-    participant Ops as Ops Dispatcher
-    participant Git as Git Ops
-    participant GitHub as GitHub Ops
-    participant Terminal as Terminal Automation
-    VSCode->>Agent: Launch agent per workspace
-    User->>Wake: Say "hello vani"
-    Wake-->>Agent: Active window timestamp
-    Agent->>Audio: record_audio_block
-    Audio-->>Agent: WAV clip
-    Agent->>STT: transcribe_audio_with_lang
-    STT-->>Agent: text + language code
-    Agent->>Intent: parse_intent(text)
-    Intent-->>Agent: intent + args
-    Agent->>Ops: handle_text_command(intent,args)
-    Ops->>Git: perform_git_operation
-    Ops->>GitHub: handle_github_operation
-    Ops->>Terminal: run_terminal_task
-    Terminal-->>VSCode: Dev server/logs
-    Agent-->>User: speak responses
-```
-
 
 - VS Code Extension (JavaScript): commands + sidebar to start/stop agent per workspace; multi-root support; auto pip install when missing; injects OPENAI_API_KEY and SARVAM_API_KEY if configured.
 - Python Agent: audio I/O + STT (Sarvam preferred, Whisper fallback) + intent parsing (OpenAI optional, heuristic fallback) + ops runners (git, GitHub REST, macOS Terminal).
 - Optional FastAPI service: HTTP endpoints for programmatic control.
+
+## Class Diagram
+
+![UML Class Diagram](./uml.png)
 
 ---
 

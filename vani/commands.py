@@ -30,6 +30,10 @@ def handle_text_command(text: str) -> None:
         print(f"Parsed intent: {intent.intent}, args: {intent.args}")
     except Exception:
         pass
+    try:
+        intent.args.setdefault("text", english_text)
+    except Exception:
+        pass
     if intent.intent == "git_operation":
         perform_git_operation(intent.args)
     elif intent.intent == "terminal_task":

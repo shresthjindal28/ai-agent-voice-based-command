@@ -199,6 +199,10 @@ def _create_program_file(language: str, file_base_name: str, description: str = 
     # Sanitize file base name
     base = file_base_name.strip() or "program"
     safe_base = "-".join([p for p in base.split() if p])
+    if "." in safe_base:
+        parts = safe_base.rsplit(".", 1)
+        if len(parts) == 2 and parts[1].lower() in {ext or "", "py", "js", "ts", "txt"}:
+            safe_base = parts[0]
     desktop = os.path.expanduser("~/Desktop")
     ext = ext or "txt"
     path = os.path.join(desktop, f"{safe_base}.{ext}")
@@ -264,7 +268,16 @@ def run_terminal_task(args: dict) -> None:
         # Create single-file program on Desktop when user indicates simple code generation
         simple_keywords = {"create", "write", "generate", "make", "program", "script", "code", "print"}
         if any(k in raw for k in simple_keywords) and not any(k in raw for k in builder_keywords):
-            desc_arg = args.get("description") or args.get("text") or args.get("problem") or args.get("prompt") or args.get("utterance") or raw
+            desc_arg = (
+                args.get("description")
+                or args.get("text")
+                or args.get("problem")
+                or args.get("prompt")
+                or args.get("utterance")
+                or ""
+            )
+            if not desc_arg or desc_arg.strip().lower() in {"create", "create_file", "write", "generate", "make", "program", "script", "code"}:
+                desc_arg = ""
             _create_program_file(language, project_name, desc_arg)
             return
         # Normalize common requests only if not already handled

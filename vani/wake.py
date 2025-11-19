@@ -2,7 +2,7 @@ import os
 import time
 from difflib import SequenceMatcher
 
-from .config import WAKE_WORD, ACTIVE_WINDOW_SECONDS, USER_NAME, TTS_VOICE, sarvam_client
+from .config import WAKE_WORD, ACTIVE_WINDOW_SECONDS, USER_NAME, sarvam_client
 from .audio import record_audio_block, save_wav_temp, speak, set_language_code
 from .stt import transcribe_audio_with_lang
 

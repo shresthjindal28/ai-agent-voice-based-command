@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 import os
 import time
-import sys
 
-from vani.config import BLOCK_DURATION
 from vani.audio import record_audio_block, save_wav_temp, speak, set_language_code
 from vani.commands import handle_text_command
 from vani.wake import wait_for_wake
 from vani.stt import transcribe_audio_with_lang
-from vani.config import USER_NAME
 
 
 def wake_word_loop():

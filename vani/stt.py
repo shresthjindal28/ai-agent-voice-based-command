@@ -1,5 +1,3 @@
-import os
-import json
 from typing import Tuple, Optional
 
 from .config import sarvam_client, SARVAM_MODEL, SARVAM_LANGUAGE_CODE, OPENAI_API_KEY, WHISPER_MODEL, STT_LANGUAGE

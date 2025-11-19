@@ -5,7 +5,6 @@ from typing import Optional, List, Dict, Any
 from .commands import handle_text_command
 from .git_ops import perform_git_operation
 from .terminal_ops import run_terminal_task
-from .audio import record_audio_block, save_wav_temp
 from .github_ops import (
     create_repo,
     delete_repo,

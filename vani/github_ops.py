@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from typing import Optional, List, Tuple
 from git import Repo

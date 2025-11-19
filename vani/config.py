@@ -1,5 +1,4 @@
 import os
-import sys
 from dotenv import load_dotenv
 from openai import OpenAI
 from sarvamai import SarvamAI

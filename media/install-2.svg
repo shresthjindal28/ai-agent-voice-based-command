@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+  <rect width="900" height="420" fill="#ffffff"/>
+  <style>
+    .title { font: 700 26px/1.5 sans-serif; fill: #111827; }
+    .text { font: 500 18px/1.5 sans-serif; fill: #1f2937; }
+    .box { fill: #dcfce7; stroke: #22c55e; stroke-width: 2; rx: 12; }
+    .cmd { font: 600 18px/1.5 monospace; fill: #065f46; }
+  </style>
+  <text x="40" y="50" class="title">Step 2 — Start the assistant</text>
+  <rect x="40" y="80" width="820" height="300" class="box"/>
+  <text x="60" y="120" class="text">• Open the Command Palette: “View → Command Palette…”</text>
+  <text x="60" y="150" class="text">• Type:</text>
+  <text x="120" y="150" class="cmd">Vani: Run Agent</text>
+  <text x="60" y="180" class="text">• Press Enter</text>
+  <text x="60" y="230" class="text">Tip: If asked for Python packages, let it install automatically.</text>
+</svg>

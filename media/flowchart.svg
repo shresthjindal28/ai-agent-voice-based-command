@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+  <rect x="0" y="0" width="960" height="600" fill="#ffffff"/>
+  <style>
+    .title { font: 700 28px/1.5 sans-serif; fill: #1f2937; }
+    .label { font: 500 18px/1.5 sans-serif; fill: #111827; }
+    .legend { font: 500 16px/1.5 sans-serif; fill: #374151; }
+    .box { fill: #e0f2fe; stroke: #0284c7; stroke-width: 2; rx: 12; }
+    .decision { fill: #fee2e2; stroke: #ef4444; stroke-width: 2; }
+    .arrow { stroke: #6b7280; stroke-width: 2; marker-end: url(#arrowHead); }
+  </style>
+
+  <defs>
+    <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="50" class="title">How It Works</text>
+
+  <!-- Step boxes -->
+  <rect class="box" x="60" y="100" width="220" height="80"/>
+  <text x="80" y="140" class="label">You speak</text>
+  <text x="80" y="165" class="label">(e.g., “push my code”)</text>
+
+  <rect class="box" x="320" y="100" width="240" height="80"/>
+  <text x="340" y="140" class="label">Agent listens</text>
+  <text x="340" y="165" class="label">and hears your request</text>
+
+  <rect class="box" x="600" y="100" width="280" height="80"/>
+  <text x="620" y="140" class="label">Understands the request</text>
+  <text x="620" y="165" class="label">like a helpful assistant</text>
+
+  <rect class="box" x="180" y="240" width="280" height="80"/>
+  <text x="200" y="280" class="label">Does the task for you</text>
+  <text x="200" y="305" class="label">(Git, GitHub, Terminal)</text>
+
+  <rect class="box" x="520" y="240" width="280" height="80"/>
+  <text x="540" y="280" class="label">Speaks back the result</text>
+  <text x="540" y="305" class="label">and shows progress</text>
+
+  <!-- Arrows between steps -->
+  <line class="arrow" x1="280" y1="140" x2="320" y2="140"/>
+  <line class="arrow" x1="560" y1="140" x2="600" y2="140"/>
+  <line class="arrow" x1="740" y1="180" x2="740" y2="240"/>
+  <line class="arrow" x1="460" y1="280" x2="520" y2="280"/>
+
+  <!-- Simple decision diamond -->
+  <polygon class="decision" points="480,100 520,140 480,180 440,140"/>
+  <text x="450" y="140" class="label">Wake word</text>
+  <text x="450" y="165" class="label">“hello vani”</text>
+
+  <!-- Legend -->
+  <rect x="40" y="360" width="880" height="190" fill="#f9fafb" stroke="#e5e7eb" rx="10"/>
+  <text x="60" y="390" class="legend">Legend</text>
+  <rect x="60" y="410" width="22" height="22" class="box"/>
+  <text x="90" y="427" class="legend">Rounded rectangle = a simple step the assistant performs</text>
+  <polygon points="60,460 82,480 60,500 38,480" class="decision"/>
+  <text x="90" y="486" class="legend">Diamond = a yes/no moment (e.g., wake word heard)</text>
+  <line x1="60" y1="520" x2="110" y2="520" class="arrow"/>
+  <text x="120" y="526" class="legend">Arrow = the order things happen</text>
+  <text x="60" y="556" class="legend">The whole flow: you speak → assistant listens → understands → does the work → tells you what happened.</text>
+</svg>

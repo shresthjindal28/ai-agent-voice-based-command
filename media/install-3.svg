@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+  <rect width="900" height="420" fill="#ffffff"/>
+  <style>
+    .title { font: 700 26px/1.5 sans-serif; fill: #111827; }
+    .text { font: 500 18px/1.5 sans-serif; fill: #1f2937; }
+    .box { fill: #fde68a; stroke: #f59e0b; stroke-width: 2; rx: 12; }
+    .say { font: 700 20px/1.5 sans-serif; fill: #b45309; }
+  </style>
+  <text x="40" y="50" class="title">Step 3 — Talk to it</text>
+  <rect x="40" y="80" width="820" height="300" class="box"/>
+  <text x="60" y="120" class="text">• Say the wake phrase:</text>
+  <text x="60" y="150" class="say">“hello vani”</text>
+  <text x="60" y="190" class="text">• Then speak naturally, e.g.:</text>
+  <text x="60" y="220" class="text">“push my repo”, “create a new branch”, “what’s the status?”</text>
+  <text x="60" y="270" class="text">Tip: Speak clearly near the microphone.</text>
+</svg>

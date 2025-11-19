@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420">
+  <rect width="900" height="420" fill="#ffffff"/>
+  <style>
+    .title { font: 700 26px/1.5 sans-serif; fill: #111827; }
+    .text { font: 500 18px/1.5 sans-serif; fill: #1f2937; }
+    .box { fill: #eef2ff; stroke: #6366f1; stroke-width: 2; rx: 12; }
+  </style>
+  <text x="40" y="50" class="title">Step 1 — Open VS Code and this folder</text>
+  <rect x="40" y="80" width="820" height="300" class="box"/>
+  <text x="60" y="120" class="text">• Start VS Code</text>
+  <text x="60" y="150" class="text">• Click “File → Open Folder…”</text>
+  <text x="60" y="180" class="text">• Choose the folder that contains this project</text>
+  <text x="60" y="230" class="text">Tip: If asked for microphone access, click “Allow”.</text>
+</svg>

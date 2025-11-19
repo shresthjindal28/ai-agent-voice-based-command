@@ -1,91 +1,99 @@
-# Vani Agent – About README
+# Vani — A Friendly Voice Helper for Your Computer
 
-![VS Code](https://img.shields.io/badge/VS%20Code-Extension-007ACC.svg) ![Python](https://img.shields.io/badge/Python-3.x-3776AB.svg) ![Voice](https://img.shields.io/badge/Voice-Assistant-ff69b4.svg) ![GitHub API](https://img.shields.io/badge/GitHub-API-181717.svg) ![OpenAI](https://img.shields.io/badge/OpenAI-Optional-3776AB.svg) ![SarvamAI](https://img.shields.io/badge/SarvamAI-Supported-3776AB.svg)
+Vani is like a helpful coworker who listens to you and does simple computer tasks for you. You talk, it understands, and it gets things done — such as checking project status, saving your work, or creating a new online repository.
 
-A voice-driven developer assistant packaged as a VS Code extension plus a Python agent. It listens for a wake word, transcribes your speech, classifies the intent, and executes developer tasks (Git operations, GitHub actions, and Terminal scaffolding).
-
-> Tip: Say “hello vani” to wake the agent, then speak natural commands like “create a React TypeScript app” or “push my repo”.
+It works inside Visual Studio Code (VS Code) using a small assistant that runs behind the scenes.
 
 ---
 
-## Overview & Architecture
+## 1) Project Overview
 
-```
-[Mic] → record_audio_block → [WAV] → STT (Sarvam preferred, Whisper fallback) → text
-                         → Intent (LLM or heuristics) → {intent,args}
-                         → Ops: git | github | terminal
-VS Code extension → spawn agent (per folder) → Output/Terminal logs
-```
+- What it does: You speak a request (“hello vani… push my code”), and the assistant carries it out.
+- Who it helps: Anyone who prefers talking over typing, or wants quick, hands‑free help.
+- Why it’s useful: It saves time on routine steps and explains what it’s doing in simple words.
 
-- VS Code Extension (JavaScript): commands + sidebar to start/stop agent per workspace; multi-root support; auto pip install when missing; injects OPENAI_API_KEY and SARVAM_API_KEY if configured.
-- Python Agent: audio I/O + STT (Sarvam preferred, Whisper fallback) + intent parsing (OpenAI optional, heuristic fallback) + ops runners (git, GitHub REST, macOS Terminal).
-- Optional FastAPI service: HTTP endpoints for programmatic control.
-
-## Class Diagram
-
-![UML Class Diagram](./uml.png)
+Key features:
+- Wake phrase: say `hello vani` to start
+- Understands everyday commands (e.g., “what’s the status?”, “create a new branch”)
+- Handles common tasks: local saving (Git), online repos (GitHub), and simple terminal actions
+- Talks back with short updates so you always know what happened
 
 ---
 
-## Languages & Runtime
+## 2) Visual Flow Diagram
 
-| Component          | Language/Runtime                           |
-|--------------------|--------------------------------------------|
-| VS Code Extension  | JavaScript (Node)                          |
-| Agent              | Python 3.x                                 |
-| STT                | Sarvam AI (preferred) → Whisper fallback   |
-| TTS                | Sarvam AI (preferred) → macOS say fallback |
-| Intent Parsing     | OpenAI GPT (optional) → heuristic fallback |
+Think of Vani like a helpful concierge. You speak, it listens, understands, does the job, and then tells you what it did.
 
----
+![Simple Flowchart](./media/flowchart.svg)
 
-## Configuration (.env or OS env)
-
-| Variable                     | Default         | Purpose                                                    |
-|------------------------------|-----------------|------------------------------------------------------------|
-| OPENAI_API_KEY               | (empty)         | Optional: enable GPT intent parsing                        |
-| SARVAM_API_KEY               | (empty)         | Enable Sarvam AI STT/TTS/translation                       |
-| WHISPER_MODEL                | whisper-1       | STT model (used when Sarvam unavailable)                   |
-| GPT_MODEL                    | gpt-4o-mini     | Intent parsing model                                      |
-| USER_NAME                    | Sir             | Greeting name                                             |
-| TTS_VOICE                    | Samantha        | macOS ‘say’ voice                                         |
-| WAKE_WORD                    | hello vani      | Wake phrase                                               |
-| ACTIVE_WINDOW_SECONDS        | 120             | Active session duration                                   |
-| TERMINAL_AUTO_APPROVE        | true            | Auto-approve terminal opening                             |
-| STT_LANGUAGE                 | auto            | STT language (auto by default)                            |
-| BLOCK_DURATION               | 7.0             | Seconds per recorded clip                                 |
+Legend (what the shapes mean):
+- Rounded rectangle: a simple step the assistant performs
+- Diamond: a yes/no moment (for example, did it hear “hello vani”?)
+- Arrow: the order things happen
 
 ---
 
-## VS Code Extension Settings (vaniAgent.*)
+## 3) Installation & Usage
 
-| Setting             | Default     | Description                                                                 |
-|---------------------|-------------|-----------------------------------------------------------------------------|
-| pythonPath          | python3     | Interpreter to run agent                                                    |
-| agentPath           | agent.py    | Script path relative to workspace root                                      |
-| openaiKey           | (empty)     | Inject OPENAI_API_KEY (recommended: set via OS/.env for security)          |
-| sarvamKey           | (empty)     | Inject SARVAM_API_KEY for Sarvam AI features                               |
-| runInTerminal       | false       | true → run in Terminal; false → stream logs in Output panel                |
-| autoInstallDeps     | true        | Auto install soundfile/sounddevice/numpy via pip if missing                |
+Follow these simple steps. No coding knowledge required.
 
-## Usage
+Step 1 — Open VS Code and this folder
 
-- In VS Code, run “Vani: Run Agent”. Say “hello vani”, then:
-  - “status of git repo”
-  - “create a React TypeScript app”
-  - “create a private repo named demo and push my local code”
-  - “print numbers 1 to 10 in python and run it”
+![Step 1](./media/install-1.svg)
 
-Optional API: run `uvicorn vani.api:app --reload` and call /command, /git, /terminal, /github/* endpoints.
+Step 2 — Start the assistant
 
-## Security
+![Step 2](./media/install-2.svg)
 
-- Keep secrets out of source control (.env preferred). Use OS env or secret managers.
-- The extension can inject OPENAI_API_KEY and SARVAM_API_KEY, but OS-level env is recommended.
-- GitHub token used only for REST and optional one-time https push; original remote restored afterward.
+Step 3 — Talk to it
 
-## Limitations
+![Step 3](./media/install-3.svg)
 
-- macOS-specific (say, osascript). For other OSes, swap TTS/terminal automation.
-- Requires OpenAI credentials for STT/LLM.
-- Simple program generation is heuristic; extend for complex tasks.
+Helpful tips:
+- Microphone access: If your computer asks for permission, click “Allow”.
+- Keys for extra features: If you have keys from your tech team (for speech or online actions), put them in a file named `.env` in this folder like:
+
+  ```
+  OPENAI_API_KEY=your_key_here
+  SARVAM_API_KEY=your_key_here
+  ```
+
+- First run: VS Code may install small helper packages for the assistant. Let it continue.
+
+Common troubleshooting:
+- “It says Python packages are missing”: Let VS Code install them automatically when prompted.
+- “It can’t hear me”: Check your microphone is on and close to you.
+- “It says no repository found”: The assistant needs a project folder that uses Git. Ask your teammate to help turn Git on in this folder.
+- “Push to GitHub failed”: Make sure your account has access and is signed in; try again or ask your teammate for access.
+
+---
+
+## 4) Frequently Asked Questions
+
+- What is Vani, in plain words?
+  - Imagine asking a friend to “save my work and put it online”. Vani does that type of job by listening and performing the right steps.
+
+- Do I need to know commands?
+  - No. Speak naturally: “what’s the status?”, “create a new branch”, “push my code”.
+
+- Is it safe?
+  - It uses keys (like house keys) to unlock special services only if you provide them. Keep keys in a safe place (the `.env` file or your system settings). Never share them publicly.
+
+- Will it work without any keys?
+  - Yes, core features still work, but some advanced speech/online features may be limited.
+
+- How do I get help?
+  - Open an issue in this repository or check the VS Code Output panel for messages from the assistant.
+
+---
+
+## 5) Design Notes
+
+- Clear headings and consistent formatting make each section easy to skim.
+- Extra spacing between lines keeps reading comfortable.
+- Visual elements (flowchart and step images) break up long text.
+- Simple language throughout; where technical ideas appear, they’re explained with everyday examples.
+
+---
+
+For engineers who want details later: there is an advanced diagram at `uml.png`, and the assistant speaks back using text‑to‑speech and listens using speech‑to‑text.

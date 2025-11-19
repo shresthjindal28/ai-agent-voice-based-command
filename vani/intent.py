@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import json
 import re
 
-from .config import client, GPT_MODEL
+from .config import client, GPT_MODEL, sarvam_client, SARVAM_CHAT_MODEL
 
 
 @dataclass
@@ -14,13 +14,9 @@ class ParsedIntent:
 def _extract_json(content: str) -> str:
     """Extract JSON object from content, removing code fences if present."""
     s = content.strip()
-    # Remove triple backtick fences like ```json ... ```
     if s.startswith("```"):
-        # Strip leading fence
         s = re.sub(r"^```[a-zA-Z]*\n", "", s)
-        # Strip trailing fence
         s = re.sub(r"\n```$", "", s)
-    # Find first { and last }
     start = s.find("{")
     end = s.rfind("}")
     if start != -1 and end != -1 and end > start:
@@ -62,7 +58,10 @@ def _heuristic_intent(text: str) -> ParsedIntent:
         framework = "react" if "react" in t else ("vue" if "vue" in t else ("svelte" if "svelte" in t else "vanilla"))
         lang = "ts" if ("typescript" in t or "ts" in t) else "js"
         return ParsedIntent(intent="terminal_task", args={"framework": framework, "language": lang, "project_name": "voice-app"})
-    if any(k in t for k in ["create", "write", "generate", "make", "program", "script", "code"]):
+    if ("run" in t) or ("execute" in t) or ("start" in t and ("program" in t or "script" in t or "file" in t)):
+        lang = "python" if ("python" in t or "py" in t) else ("typescript" if ("typescript" in t or "ts" in t) else ("javascript" if ("javascript" in t or "js" in t) else "python"))
+        return ParsedIntent(intent="terminal_task", args={"language": lang, "project_name": "program", "command": "run"})
+    if (any(k in t for k in ["create", "write", "generate", "make", "program", "script", "code"]) and not any(k in t for k in ["create pr", "create issue", "create repo"])):
         # Simple single-file code creation
         language = "python" if ("python" in t or "py" in t) else ("typescript" if ("typescript" in t or "ts" in t) else "javascript")
         return ParsedIntent(intent="terminal_task", args={"language": language, "project_name": "program", "description": text})
@@ -74,12 +73,43 @@ def _heuristic_intent(text: str) -> ParsedIntent:
         return ParsedIntent(intent="github_operation", args={"operation": "delete_repo", "name": "voice-repo"})
     if "link remote" in t or "add remote" in t:
         return ParsedIntent(intent="github_operation", args={"operation": "link_remote", "repo_path": "."})
+    if ("list repos" in t) or ("list repositories" in t) or ("my repos" in t) or ("repos" in t and "list" in t):
+        vis = "all" if "all" in t else None
+        args = {"operation": "list_repos"}
+        if vis:
+            args["visibility"] = vis
+        return ParsedIntent(intent="github_operation", args=args)
+    if ("install" in t and "github" in t and "repos" in t):
+        vis = "all" if "all" in t else None
+        args = {"operation": "list_repos"}
+        if vis:
+            args["visibility"] = vis
+        return ParsedIntent(intent="github_operation", args=args)
+    if ("list prs" in t) or ("list pull requests" in t) or ("open prs" in t):
+        return ParsedIntent(intent="github_operation", args={"operation": "list_prs"})
+    if ("list issues" in t):
+        state = "all" if "all" in t else ("closed" if "closed" in t else "open")
+        return ParsedIntent(intent="github_operation", args={"operation": "list_issues", "state": state})
+    if ("create pr" in t) or ("open pr" in t):
+        return ParsedIntent(intent="github_operation", args={"operation": "create_pr"})
+    if ("merge pr" in t):
+        m = re.search(r"merge\s+pr\s+(\d+)", t)
+        num = int(m.group(1)) if m else None
+        return ParsedIntent(intent="github_operation", args={"operation": "merge_pr", "number": num} )
+    if ("create issue" in t):
+        m = re.search(r"create\s+issue(?:\s+(?:called|titled))?\s+\"([^\"]+)\"", text, re.IGNORECASE)
+        title = m.group(1) if m else "voice issue"
+        return ParsedIntent(intent="github_operation", args={"operation": "create_issue", "title": title})
+    if ("close issue" in t):
+        m = re.search(r"close\s+issue\s+(\d+)", t)
+        num = int(m.group(1)) if m else None
+        return ParsedIntent(intent="github_operation", args={"operation": "close_issue", "number": num})
 
     return ParsedIntent(intent="misc", args={"raw": text})
 
 
 def parse_intent(text: str) -> ParsedIntent:
-    """Use GPT to parse text into an intent and args; fallback to heuristics when unavailable."""
+    """Use LLM to parse text into an intent and args; fallback to heuristics when unavailable."""
     SYSTEM_PROMPT = (
         "You are a voice agent that turns user speech into structured intents. "
         "Supported intents: 'git_operation', 'terminal_task', 'github_operation', 'misc'. "
@@ -92,6 +122,40 @@ def parse_intent(text: str) -> ParsedIntent:
         "If user asks to create code or project, set intent=terminal_task and provide suggested commands."
     )
     user_prompt = f"Command: {text}\nReturn JSON only."
+    if sarvam_client is not None:
+        try:
+            resp = sarvam_client.chat.completions(
+                messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user_prompt}],
+                temperature=0.5,
+                top_p=1,
+                max_tokens=800,
+                model=SARVAM_CHAT_MODEL,
+                reasoning_effort="medium",
+            )
+            content = None
+            try:
+                content = resp.choices[0].message.content
+            except Exception:
+                try:
+                    if isinstance(resp, dict):
+                        choices = resp.get("choices") or []
+                        first = choices[0] if choices else {}
+                        msg = first.get("message") or {}
+                        content = msg.get("content") or first.get("content") or resp.get("output") or resp.get("text")
+                except Exception:
+                    content = None
+            if not content:
+                return _heuristic_intent(text)
+            try:
+                payload = _extract_json(content)
+                data = json.loads(payload)
+                intent = data.get("intent", "misc")
+                args = data.get("args", {})
+                return ParsedIntent(intent=intent, args=args)
+            except Exception:
+                return ParsedIntent(intent="misc", args={"raw": content})
+        except Exception:
+            return _heuristic_intent(text)
     if client is None:
         return _heuristic_intent(text)
     try:
@@ -110,5 +174,4 @@ def parse_intent(text: str) -> ParsedIntent:
         except Exception:
             return ParsedIntent(intent="misc", args={"raw": content})
     except Exception:
-        # Fallback to heuristics on any error
         return _heuristic_intent(text)

@@ -1,7 +1,7 @@
 import os
 import json
 import requests
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from git import Repo
 
 from .config import GITHUB_TOKEN, GITHUB_DEFAULT_VISIBILITY, GITHUB_DEFAULT_ORG, GITHUB_DEFAULT_PROTOCOL
@@ -214,6 +214,35 @@ def close_issue(owner: str, repo: str, number: int) -> dict:
     return r.json()
 
 
+def _detect_owner_repo(repo_path: str) -> Tuple[Optional[str], Optional[str]]:
+    try:
+        repo = Repo(repo_path)
+        url = None
+        try:
+            url = repo.remotes.origin.url
+        except Exception:
+            try:
+                remotes = list(repo.remotes)
+                url = remotes[0].url if remotes else None
+            except Exception:
+                url = None
+        if not url:
+            return None, None
+        if url.startswith("git@github.com:"):
+            path = url.split("git@github.com:")[-1]
+        elif "github.com/" in url:
+            path = url.split("github.com/")[-1]
+        else:
+            return None, None
+        if path.endswith(".git"):
+            path = path[:-4]
+        parts = path.split("/", 1)
+        if len(parts) != 2:
+            return None, None
+        return parts[0], parts[1]
+    except Exception:
+        return None, None
+
 def handle_github_operation(args: dict) -> None:
     op = args.get("operation")
     try:
@@ -275,27 +304,59 @@ def handle_github_operation(args: dict) -> None:
         elif op == "list_prs":
             owner = args.get("owner")
             repo = args.get("repo")
+            if not owner or not repo:
+                o, r = _detect_owner_repo(args.get("repo_path", os.getcwd()))
+                owner = owner or o
+                repo = repo or r
+            if not owner or not repo:
+                speak("Owner/repo not specified and no local git repo detected.")
+                return
             prs = list_open_prs(owner, repo)
             titles = [p.get("title") for p in prs[:5]]
             speak(f"Open PRs: {', '.join(titles) if titles else 'none'}.")
         elif op == "create_pr":
             owner = args.get("owner")
             repo = args.get("repo")
-            title = args.get("title")
+            if not owner or not repo:
+                o, r = _detect_owner_repo(args.get("repo_path", os.getcwd()))
+                owner = owner or o
+                repo = repo or r
+            if not owner or not repo:
+                speak("Owner/repo not specified and no local git repo detected.")
+                return
+            title = args.get("title") or "Voice PR"
             head = args.get("head")
             base = args.get("base")
             body = args.get("body")
+            if not head or not base:
+                speak("PR needs head and base branches.")
+                return
             pr = create_pull_request(owner, repo, title, head, base, body)
             speak(f"PR #{pr.get('number')} created.")
         elif op == "merge_pr":
             owner = args.get("owner")
             repo = args.get("repo")
-            number = int(args.get("number"))
+            if not owner or not repo:
+                o, r = _detect_owner_repo(args.get("repo_path", os.getcwd()))
+                owner = owner or o
+                repo = repo or r
+            num_arg = args.get("number")
+            number = int(num_arg) if num_arg is not None else None
+            if not owner or not repo or not number:
+                speak("Merge needs owner, repo, and PR number.")
+                return
             result = merge_pull_request(owner, repo, number)
             speak(f"PR #{number} merged.")
         elif op == "list_issues":
             owner = args.get("owner")
             repo = args.get("repo")
+            if not owner or not repo:
+                o, r = _detect_owner_repo(args.get("repo_path", os.getcwd()))
+                owner = owner or o
+                repo = repo or r
+            if not owner or not repo:
+                speak("Owner/repo not specified and no local git repo detected.")
+                return
             state = args.get("state", "open")
             issues = list_issues(owner, repo, state)
             titles = [i.get("title") for i in issues[:5]]
@@ -303,7 +364,14 @@ def handle_github_operation(args: dict) -> None:
         elif op == "create_issue":
             owner = args.get("owner")
             repo = args.get("repo")
-            title = args.get("title")
+            if not owner or not repo:
+                o, r = _detect_owner_repo(args.get("repo_path", os.getcwd()))
+                owner = owner or o
+                repo = repo or r
+            if not owner or not repo:
+                speak("Owner/repo not specified and no local git repo detected.")
+                return
+            title = args.get("title") or "Voice Issue"
             body = args.get("body")
             labels = args.get("labels")
             issue = create_issue(owner, repo, title, body, labels)
@@ -311,7 +379,15 @@ def handle_github_operation(args: dict) -> None:
         elif op == "close_issue":
             owner = args.get("owner")
             repo = args.get("repo")
-            number = int(args.get("number"))
+            if not owner or not repo:
+                o, r = _detect_owner_repo(args.get("repo_path", os.getcwd()))
+                owner = owner or o
+                repo = repo or r
+            num_arg = args.get("number")
+            number = int(num_arg) if num_arg is not None else None
+            if not owner or not repo or not number:
+                speak("Close needs owner, repo, and issue number.")
+                return
             close_issue(owner, repo, number)
             speak(f"Issue #{number} closed.")
         else:

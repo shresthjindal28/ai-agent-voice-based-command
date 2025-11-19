@@ -1,5 +1,6 @@
 import os
 import time
+import subprocess
 
 from .audio import record_audio_block, save_wav_temp, speak
 from .stt import transcribe_audio_with_lang
@@ -236,6 +237,12 @@ def run_terminal_task(args: dict) -> None:
     command = args.get("command")
 
     cmds = []
+    desc_arg = (
+        (args.get("description") or args.get("text") or args.get("problem") or args.get("prompt") or args.get("utterance") or "")
+    ).strip()
+    if not command and desc_arg:
+        _create_program_file(language, project_name, desc_arg)
+        return
     if command:
         raw = (command or "").lower().strip()
         handled = False
@@ -344,22 +351,34 @@ def run_terminal_task(args: dict) -> None:
             cmds.append(f"echo 'No predefined flow for {language} {framework}. Provide command.'")
 
     script = " ; ".join(cmds)
+    if not script.strip():
+        print("No commands to run.")
+        return
     # Escape for AppleScript string
     script_escaped = script.replace("\\", "\\\\").replace("\"", "\\\"")
     # Reuse existing window if Terminal is open; otherwise create one
-    osa = (
-        "osascript "
-        "-e 'tell application \"Terminal\"' "
-        f"-e 'set cmd to \"{script_escaped}\"' "
-        "-e 'if (count of windows) is 0 then' "
-        "-e 'do script cmd' "
-        "-e 'else' "
-        "-e 'do script cmd in front window' "
-        "-e 'end if' "
-        "-e 'activate' "
-        "-e 'end tell'"
-    )
-    ret = os.system(osa)
+    osa_args = [
+        "osascript",
+        "-e",
+        'tell application "Terminal"',
+        "-e",
+        f'set cmd to "{script_escaped}"',
+        "-e",
+        'if (count of windows) is 0 then',
+        "-e",
+        'do script cmd',
+        "-e",
+        'else',
+        "-e",
+        'do script cmd in front window',
+        "-e",
+        'end if',
+        "-e",
+        'activate',
+        "-e",
+        'end tell',
+    ]
+    ret = subprocess.run(osa_args).returncode
     if ret != 0:
         print(f"AppleScript failed with status {ret}.")
         return

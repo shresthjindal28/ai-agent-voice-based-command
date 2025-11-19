@@ -13,17 +13,30 @@ def _is_wake_detected(text: str, language_code: str) -> bool:
     if WAKE_WORD in t:
         return True
     # Common variants for "vani" across Indic scripts
-    vani_variants = {
+    vani_variants = [
         "vani", "vaani", "vanee",
-        "वाणी", "वानी",  # Hindi/Marathi
-        "வாணி",            # Tamil
-        "వాణి",            # Telugu
-        "ವಾಣಿ",            # Kannada
-        "વાણી",            # Gujarati
-        "বাণী",            # Bengali
-        "ਵਾਨੀ",            # Punjabi (Gurmukhi)
-    }
-    hello_variants = {"hello", "helo", "हेलो", "हैलो", "ஹலோ", "హలో", "ಹಲೋ", "હેલો", "হ্যালো", "ਹੈਲੋ", "வணக்கம்"}
+        "वाणी", "वानी",      # Hindi, Marathi
+        "வாணி",             # Tamil
+        "వాణి",             # Telugu
+        "ವಾಣಿ",             # Kannada
+        "વાણી",             # Gujarati
+        "বাণী",             # Bengali
+        "ਵਾਨੀ",             # Punjabi (Gurmukhi)
+        "بانی",             # Urdu
+    ]
+
+    hello_variants = [
+        "hello", "helo", "hi", "hey",
+        "हेलो", "हैलो", "नमस्ते",     # Hindi
+        "ஹலோ", "வணக்கம்",            # Tamil
+        "హలో", "నమస్తే",             # Telugu
+        "ಹಲೋ", "ನಮಸ್ಕಾರ",           # Kannada
+        "હેલો", "નમસ્તે",            # Gujarati
+        "হ্যালো", "নমস্কার",          # Bengali
+        "ਸਤ ਸ੍ਰੀ ਅਕਾਲ", "ਹੈਲੋ",       # Punjabi
+        "السلام عليكم",               # Urdu/Arabic
+    ]
+    # hello_variants = {"hello", "helo", "हेलो", "हैलो", "हॅलो", "ஹலோ", "హలో", "ಹಲೋ", "હેલો", "হ্যালো", "ਹੈਲੋ", "ഹലോ", "ହେଲୋ", "வணக்கம்", "നമസ്കാരം"}
     if any(v in t for v in vani_variants) and any(h in t for h in hello_variants):
         return True
     # Try fuzzy match

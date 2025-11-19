@@ -5,6 +5,14 @@ from typing import Tuple, Optional
 from .config import sarvam_client, SARVAM_MODEL, SARVAM_LANGUAGE_CODE, OPENAI_API_KEY, WHISPER_MODEL, STT_LANGUAGE
 
 
+def _ascii_ratio(s: str) -> float:
+    if not s:
+        return 0.0
+    total = len(s)
+    ascii_count = sum(1 for ch in s if ord(ch) < 128 and ch.isprintable())
+    return ascii_count / max(total, 1)
+
+
 def _extract_text_and_lang(resp) -> Tuple[str, Optional[str]]:
     # Try multiple possible shapes from Sarvam / Whisper
     text = None
@@ -36,6 +44,22 @@ def transcribe_audio_with_lang(file_path: str) -> Tuple[str, Optional[str]]:
                 resp = sarvam_client.speech_to_text.transcribe(**kwargs)
             text, lang = _extract_text_and_lang(resp)
             if text:
+                if (
+                    STT_LANGUAGE and STT_LANGUAGE.lower() == "auto" and
+                    lang and isinstance(lang, str) and not lang.lower().startswith("en")
+                ):
+                    try:
+                        with open(file_path, "rb") as audio_file2:
+                            resp_en = sarvam_client.speech_to_text.transcribe(
+                                file=audio_file2,
+                                model=SARVAM_MODEL,
+                                language_code="en-IN",
+                            )
+                        t_en, l_en = _extract_text_and_lang(resp_en)
+                        if t_en and _ascii_ratio(t_en) >= 0.65:
+                            return t_en, "en-IN"
+                    except Exception:
+                        pass
                 return text, lang
         except Exception as e:
             print(f"Sarvam STT failed: {e}")

@@ -26,6 +26,7 @@ STT_LANGUAGE = os.getenv("STT_LANGUAGE", "auto")
 SARVAM_API_KEY = os.getenv("SARVAM_API_KEY")
 SARVAM_MODEL = os.getenv("SARVAM_MODEL", "saarika:v2.5")
 SARVAM_LANGUAGE_CODE = os.getenv("SARVAM_LANGUAGE_CODE", "auto")
+SARVAM_CHAT_MODEL = os.getenv("SARVAM_CHAT_MODEL", "sarvam-m:24b")
 # SarvamAI TTS configuration
 SARVAM_TTS_MODEL = os.getenv("SARVAM_TTS_MODEL", "bulbul:v2")
 
